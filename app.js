@@ -119,7 +119,7 @@ function generateMoisturePercent(dd) {
   const range = maxM - minM;
 
   // Bias toward the centre-left of the green band.
-  const bias = 0.35 + Math.random() * 0.15;
+  const bias = 0.15 + Math.random() * 0.15;
   const randomNoise = (Math.random() - 0.5) * 0.25 * range;
   const value = minM + range * bias + randomNoise;
 

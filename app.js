@@ -139,7 +139,8 @@ function generateData() {
   dataBody.innerHTML = "";
 
   for (let i = 0; i < rows; i++) {
-    const dd = randomInteger(mdd95, mdd);
+    const ddMin = Math.round(mdd * 0.965);
+    const dd = randomInteger(ddMin, mdd);
     const mPercent = generateMoisturePercent(dd);
     const m = Math.round(dd * mPercent / 100);
     const wd = dd + m;

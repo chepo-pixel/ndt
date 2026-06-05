@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nuclear Density Data Generator</title>
+  <meta name="theme-color" content="#111827">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>Nuclear Density Data Generator</h1>
+      <p class="subtitle">Generador de datos artificiales para uso educativo.</p>
+
+      <div class="form-group">
+        <label for="mdd">MDD [kg/m³]</label>
+        <input
+          id="mdd"
+          type="text"
+          inputmode="numeric"
+          maxlength="4"
+          placeholder="Ej: 1914"
+          autocomplete="off"
+        >
+        <div id="mddError" class="error"></div>
+        <div id="mdd95" class="result-line">95% MDD: —</div>
+      </div>
+
+      <div class="form-group">
+        <label for="rows">Cantidad de filas</label>
+        <input
+          id="rows"
+          type="number"
+          inputmode="numeric"
+          min="1"
+          max="500"
+          step="1"
+          placeholder="Ej: 10"
+        >
+        <div id="rowsError" class="error"></div>
+      </div>
+
+      <button id="generateBtn">Generar datos</button>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>WD [kg/m³]</th>
+              <th>DD [kg/m³]</th>
+              <th>M [kg/m³]</th>
+              <th>%M</th>
+            </tr>
+          </thead>
+          <tbody id="dataBody">
+            <tr>
+              <td colspan="4" class="empty">Sin datos generados</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

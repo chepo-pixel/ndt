@@ -3,12 +3,16 @@ const rowsInput = document.getElementById("rows");
 const gsInput = document.getElementById("gs");
 const ddMinPercentInput = document.getElementById("ddMinPercent");
 const ddMaxPercentInput = document.getElementById("ddMaxPercent");
+const densityCorrectionMInput = document.getElementById("densityCorrectionM");
+const densityCorrectionNInput = document.getElementById("densityCorrectionN");
 
 const mddError = document.getElementById("mddError");
 const rowsError = document.getElementById("rowsError");
 const gsError = document.getElementById("gsError");
 const ddMinError = document.getElementById("ddMinError");
 const ddMaxError = document.getElementById("ddMaxError");
+const densityCorrectionMError = document.getElementById("densityCorrectionMError");
+const densityCorrectionNError = document.getElementById("densityCorrectionNError");
 
 const mdd95Display = document.getElementById("mdd95");
 const generateBtn = document.getElementById("generateBtn");
@@ -61,6 +65,8 @@ function validateAdvancedOptions() {
   const gs = Number(gsInput.value);
   const ddMinPercent = Number(ddMinPercentInput.value);
   const ddMaxPercent = Number(ddMaxPercentInput.value);
+  const densityCorrectionM = Number(densityCorrectionMInput.value);
+  const densityCorrectionN = Number(densityCorrectionNInput.value);
 
   let valid = true;
 
@@ -88,8 +94,22 @@ function validateAdvancedOptions() {
     ddMaxError.textContent = "";
   }
 
+  if (!Number.isFinite(densityCorrectionM) || Math.abs(densityCorrectionM) < 1e-12) {
+    densityCorrectionMError.textContent = "Correction factor m must be a non-zero number.";
+    valid = false;
+  } else {
+    densityCorrectionMError.textContent = "";
+  }
+
+  if (!Number.isFinite(densityCorrectionN)) {
+    densityCorrectionNError.textContent = "Correction factor n must be a valid number.";
+    valid = false;
+  } else {
+    densityCorrectionNError.textContent = "";
+  }
+
   if (!valid) return null;
-  return { gs, ddMinPercent, ddMaxPercent };
+  return { gs, ddMinPercent, ddMaxPercent, densityCorrectionM, densityCorrectionN };
 }
 
 function randomInteger(min, max) {
@@ -150,28 +170,76 @@ function generateData() {
 
   if (!mdd || !rows || !advanced) return;
 
-  const { gs, ddMinPercent, ddMaxPercent } = advanced;
+  const {
+    gs,
+    ddMinPercent,
+    ddMaxPercent,
+    densityCorrectionM,
+    densityCorrectionN
+  } = advanced;
+
   const ddMin = Math.round(mdd * ddMinPercent / 100);
   const ddMax = Math.round(mdd * ddMaxPercent / 100);
+  const correctionActive =
+    Math.abs(densityCorrectionM - 1) > 1e-12 ||
+    Math.abs(densityCorrectionN) > 1e-12;
+
+  const headerRow = document.querySelector("table thead tr");
+  if (correctionActive) {
+    headerRow.innerHTML = `
+      <th>WD [kg/m³]</th>
+      <th>Corr. WD [kg/m³]</th>
+      <th>DD [kg/m³]</th>
+      <th>M [kg/m³]</th>
+      <th>%M</th>
+    `;
+  } else {
+    headerRow.innerHTML = `
+      <th>WD [kg/m³]</th>
+      <th>DD [kg/m³]</th>
+      <th>M [kg/m³]</th>
+      <th>%M</th>
+    `;
+  }
 
   dataBody.innerHTML = "";
   generatedPoints = [];
 
   for (let i = 0; i < rows; i++) {
+    // Generate the corrected DD first so that all compaction and air-void constraints
+    // continue to apply to the corrected values.
     const dd = randomInteger(ddMin, ddMax);
     const mPercent = generateMoisturePercent(dd, gs);
-    const m = Math.round(dd * mPercent / 100);
-    const wd = dd + m;
+    const moistureMass = Math.round(dd * mPercent / 100);
+
+    // This is the corrected bulk/wet density used for all calculations.
+    const correctedWdKgM3 = dd + moistureMass;
+
+    // Correction equation is applied in Mg/m³, matching laboratory/gauge reports:
+    // corrected = m * raw + n
+    const correctedWdMgM3 = correctedWdKgM3 / 1000;
+    const rawWdMgM3 = (correctedWdMgM3 - densityCorrectionN) / densityCorrectionM;
+    const rawWdKgM3 = Math.round(rawWdMgM3 * 1000);
 
     generatedPoints.push({ moisture: mPercent, dryDensity: dd / 1000 });
 
     const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${wd}</td>
-      <td>${dd}</td>
-      <td>${m}</td>
-      <td>${mPercent.toFixed(1)}</td>
-    `;
+    if (correctionActive) {
+      tr.innerHTML = `
+        <td>${rawWdKgM3}</td>
+        <td>${correctedWdKgM3}</td>
+        <td>${dd}</td>
+        <td>${moistureMass}</td>
+        <td>${mPercent.toFixed(1)}</td>
+      `;
+    } else {
+      tr.innerHTML = `
+        <td>${correctedWdKgM3}</td>
+        <td>${dd}</td>
+        <td>${moistureMass}</td>
+        <td>${mPercent.toFixed(1)}</td>
+      `;
+    }
     dataBody.appendChild(tr);
   }
 
@@ -326,7 +394,13 @@ function drawChart(gs, points = []) {
 
 mddInput.addEventListener("input", () => validateMdd());
 
-[gsInput, ddMinPercentInput, ddMaxPercentInput].forEach(input => {
+[
+  gsInput,
+  ddMinPercentInput,
+  ddMaxPercentInput,
+  densityCorrectionMInput,
+  densityCorrectionNInput
+].forEach(input => {
   input.addEventListener("input", () => {
     const advanced = validateAdvancedOptions();
     if (advanced) drawChart(advanced.gs, generatedPoints);

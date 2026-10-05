@@ -11,8 +11,8 @@
 <body>
   <main class="app">
     <section class="card">
-      <h1>NDT Artificial Data Generator v2.0</h1>
-      <p class="subtitle">ENJOY DOO BE DOO</p>
+      <h1>NDT Artificial Data Generator v2.1</h1>
+      <p class="subtitle">Artificial NDT data generator</p>
 
       <div class="form-group">
         <label for="mdd">MDD [kg/m³]</label>
@@ -45,6 +45,18 @@
             <input id="ddMaxPercent" type="number" inputmode="decimal" min="80" max="120" step="0.1" value="100">
             <div id="ddMaxError" class="error"></div>
           </div>
+
+          <div class="form-group">
+            <label for="densityCorrectionM">Density correction factor m</label>
+            <input id="densityCorrectionM" type="number" inputmode="decimal" step="0.0001" value="1.0000">
+            <div id="densityCorrectionMError" class="error"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="densityCorrectionN">Density correction factor n [Mg/m³]</label>
+            <input id="densityCorrectionN" type="number" inputmode="decimal" step="0.0001" value="0.0000">
+            <div id="densityCorrectionNError" class="error"></div>
+          </div>
         </div>
       </details>
 
@@ -68,7 +80,7 @@
 
       <section class="chart-section">
         <h2>Dry Density / Moisture Content Relationship</h2>
-        <p class="chart-note">Curves based on current Gs. Generated points are shown after data generation.</p>
+        <p class="chart-note">Dynamic curves based on current Gs. Generated points are shown after data generation.</p>
         <div class="chart-wrap">
           <canvas id="relationshipChart" width="900" height="560"></canvas>
         </div>
